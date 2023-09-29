@@ -79,16 +79,43 @@ Module Program
         'Console.WriteLine("Dopo Task")
 
         '-------- In Questa maniera l'istruzione successiva verrà eseguita solo al termine dei Tasks
-        Dim t = EseguiOperazioneAsincrona()
-        t.ContinueWith(Sub(previousTask)
-                           Console.WriteLine("Operazione asincrona completata")
+        'Dim t = EseguiOperazioneAsincrona()
+        't.ContinueWith(Sub(previousTask)
+        '                   Console.WriteLine("Operazione asincrona completata")
 
-                           Dim result As Boolean = Test()
+        '                   Dim result As Boolean = Test()
 
-                       End Sub).Wait()
+        '               End Sub).Wait()
 
+        'Console.WriteLine("Dopo Task")
+
+        '-------- In Questo modo i tre task verranno eseguiti uno dopo l'altro e pooi tutte le operazioni successive
+        Dim t As Task(Of Boolean) = Task.Run(Function()
+                                                 For i = 0 To 10
+                                                     Console.WriteLine(i)
+                                                     Threading.Thread.Sleep(1000)
+                                                 Next
+                                                 Return True
+                                             End Function)
+        Dim t1 As Task(Of Boolean) = t.ContinueWith(Function(previousTask)
+                                                        Console.WriteLine("Operazione asincrona completata")
+
+                                                        Dim result As Boolean = Test()
+                                                        Return True
+
+                                                    End Function)
+
+        Dim t2 As Task(Of Boolean) = t1.ContinueWith(Function(previous)
+                                                         If previous.Result Then
+                                                             For i = 20 To 25
+                                                                 Console.WriteLine(i)
+                                                             Next
+                                                         End If
+                                                         Return True
+                                                     End Function)
+
+        t2.GetAwaiter().GetResult()
         Console.WriteLine("Dopo Task")
-
 
         Console.Read()
     End Sub
